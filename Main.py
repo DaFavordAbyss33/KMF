@@ -78,28 +78,14 @@ async def skip(ctx):
     embed.add_field(name="Player Skipped", value=f"Requested by {ctx.message.author.name}")
     await client.say(embed=embed)
 	
-@client.command(name="play", pass_context=True)
-async def _play(ctx, *, name):
-	author = ctx.message.author
-	name = ctx.message.content.replace("m.play ", '')
-	fullcontent = ('http://www.youtube.com/results?search_query=' + name)
-	text = requests.get(fullcontent).text
-	soup = bs4.BeautifulSoup(text, 'html.parser')
-	img = soup.find_all('img')
-	div = [ d for d in soup.find_all('div') if d.has_attr('class') and 'yt-lockup-dismissable' in d['class']]
-	a = [ x for x in div[0].find_all('a') if x.has_attr('title') ]
-	title = (a[0]['title'])
-	a0 = [ x for x in div[0].find_all('a') if x.has_attr('title') ][0]
-	url = ('http://www.youtube.com'+a0['href'])
-	server = ctx.message.server
-	voice_client = client.voice_client_in(server)
-	player = await voice_client.create_ytdl_player(url, after=lambda: check_queue(server.id))
-	players[server.id] = player
-	print("User: {} From Server: {} is playing {}".format(author, server, title))
-	player.start()
-	embed = discord.Embed(description=" ")
-	embed.add_field(name="Now Playing", value=title)
-	await client.say(embed=embed)
+@client.command(pass_context=True)
+async def play(ctx, url):
+    server = ctx.message.server
+    await client.join_voice_channel(ctx.message.author.voice.voice_channel)
+    voice_client = client.voice_client_in(server)
+    player = await voice_client.create_ytdl_player(url)
+    players[server.id] = player
+    player.start()
 	
 @client.command(pass_context=True)
 async def queue(ctx, *, name):
